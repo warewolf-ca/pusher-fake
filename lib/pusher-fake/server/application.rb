@@ -131,16 +131,20 @@ module PusherFake
       # @param [String] name The channel name.
       # @return [Hash] A hash of user IDs.
       def self.users(name, _request = nil)
-        channels = PusherFake::Channel.channels || {}
-        channel  = channels[name]
+        if name =~ /\Apresence-/
+          channels = PusherFake::Channel.channels || {}
+          channel  = channels[name]
 
-        if channel
-          users = channel.connections.map do |connection|
-            { id: connection.id }
+          if channel
+            users = channel.members.each_value.map do |member|
+              { id: member[:user_id] }
+            end
           end
-        end
 
-        { users: users || [] }
+          { users: users || [] }
+        else
+          raise 'Users can only be retrieved for presence channels'
+        end
       end
 
       private_class_method
